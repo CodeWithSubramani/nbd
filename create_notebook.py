@@ -111,32 +111,50 @@ print("-" * 50)
 for skill, avg_salary, count in skills_salary.take(20):
     print(f"{skill:30} | ${avg_salary:,.2f} | {count}")"""),
 
+    nbf.v4.new_markdown_cell("### 4. Number of Job Postings per Category (Top 10)"),
+    nbf.v4.new_code_cell("""# Count job postings per category
+category_counts = df.groupBy("Job Category") \\
+                   .count() \\
+                   .orderBy(col("count").desc()) \\
+                   .limit(10)
+
+print("Top 10 Job Categories by Number of Postings:")
+category_counts.show(truncate=False)"""),
+
     nbf.v4.new_markdown_cell("## Data Visualization"),
 
     nbf.v4.new_code_cell("""# Convert Spark DataFrames to Pandas for visualization
 recent_salaries_pd = recent_salaries.toPandas()
+category_counts_pd = category_counts.toPandas()
 
 # Set up the visualization style
 plt.style.use('seaborn')
 
+# Create a figure with multiple subplots
+fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(12, 18))
+
 # 1. Average Salary by Agency (Last 2 Years)
-plt.figure(figsize=(12, 8))
 recent_salaries_pd = recent_salaries_pd.head(15)  # Top 15 agencies
-recent_salaries_pd.plot(kind='barh', x='Agency', y=['Avg Salary From', 'Avg Salary To'])
-plt.title('Average Salary Range by Agency (Last 2 Years)')
-plt.xlabel('Average Salary ($)')
-plt.tight_layout()
-plt.show()
+recent_salaries_pd.plot(kind='barh', x='Agency', y=['Avg Salary From', 'Avg Salary To'], ax=ax1)
+ax1.set_title('Average Salary Range by Agency (Last 2 Years)')
+ax1.set_xlabel('Average Salary ($)')
 
 # 2. Number of Postings vs Average Salary
-plt.figure(figsize=(10, 6))
-plt.scatter(recent_salaries_pd['Number of Postings'], 
-            recent_salaries_pd['Avg Salary To'],
-            alpha=0.6)
-plt.title('Number of Postings vs Average Salary (Last 2 Years)')
-plt.xlabel('Number of Postings')
-plt.ylabel('Average Salary ($)')
-plt.grid(True)
+ax2.scatter(recent_salaries_pd['Number of Postings'], 
+           recent_salaries_pd['Avg Salary To'],
+           alpha=0.6)
+ax2.set_title('Number of Postings vs Average Salary (Last 2 Years)')
+ax2.set_xlabel('Number of Postings')
+ax2.set_ylabel('Average Salary ($)')
+ax2.grid(True)
+
+# 3. Top 10 Job Categories
+category_counts_pd.plot(kind='bar', x='Job Category', y='count', ax=ax3)
+ax3.set_title('Top 10 Job Categories by Number of Postings')
+ax3.set_xlabel('Job Category')
+ax3.set_ylabel('Number of Postings')
+ax3.tick_params(axis='x', rotation=45)
+
 plt.tight_layout()
 plt.show()""")
 ]
